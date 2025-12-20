@@ -17,15 +17,27 @@ llm = ChatOllama(
     max_tokens=250,
 )
 
-st.title("How can I help you today?")
-st.write("Enter your query below")
-
-
 def get_session_history(session_id) -> SQLChatMessageHistory:
     return SQLChatMessageHistory(
         session_id=session_id, connection_string="sqlite:///chat_history.db"
     )
 
+session_id = "Karthik"
+st.title("How can I help you today?")
+st.write("Enter your query below")
+session_id = st.text_input("Enter you name", session_id)
+
+if st.button("New Chat"):
+  st.session_state.chat_history = []
+  get_session_history(session_id).clear()
+
+if 'chat_history' not in st.session_state:
+    st.session_state.chat_history = []
+    
+for message in st.session_state.chat_history:
+    with st.chat_message(message['role']):
+        st.markdown(message['content'])
+        
 
 template = ChatPromptTemplate.from_messages(
     [
@@ -44,16 +56,10 @@ history = RunnableWithMessageHistory(
     history_messages_key="history",
 )
 
-session_id = "Karthik"
-get_session_history(session_id).clear()
-
 prompt = st.chat_input("Enter your query")
-
-st.session_state.chat_history = []
-
 if prompt:
     with st.chat_message("user"):
-        st.write(prompt)
+        st.markdown(prompt)
     response = history.invoke(
         {"prompt": prompt},
         config={"configurable": {"session_id": session_id}},
@@ -61,4 +67,4 @@ if prompt:
     st.session_state.chat_history.append({'role': 'user', 'content': prompt})
     st.session_state.chat_history.append({'role': 'assistant', 'content': response})
     with st.chat_message("assistant"):
-      st.write(response)
+      st.markdown(response)
