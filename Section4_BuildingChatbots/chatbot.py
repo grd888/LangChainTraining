@@ -8,13 +8,13 @@ from langchain_ollama import ChatOllama
 from dotenv import load_dotenv
 import streamlit as st
 
-load_dotenv('../.env')
+load_dotenv("../.env")
 
 llm = ChatOllama(
-   base_url="http://localhost:11434",
-   model="qwen2.5:latest",
-   temperature=0.5,
-   max_tokens=250
+    base_url="http://localhost:11434",
+    model="qwen2.5:latest",
+    temperature=0.5,
+    max_tokens=250,
 )
 
 st.title("How can I help you today?")
@@ -48,3 +48,17 @@ session_id = "Karthik"
 get_session_history(session_id).clear()
 
 prompt = st.chat_input("Enter your query")
+
+st.session_state.chat_history = []
+
+if prompt:
+    with st.chat_message("user"):
+        st.write(prompt)
+    response = history.invoke(
+        {"prompt": prompt},
+        config={"configurable": {"session_id": session_id}},
+    )
+    st.session_state.chat_history.append({'role': 'user', 'content': prompt})
+    st.session_state.chat_history.append({'role': 'assistant', 'content': response})
+    with st.chat_message("assistant"):
+      st.write(response)
